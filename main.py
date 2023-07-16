@@ -26,16 +26,52 @@ class Botinterface():
                     "random_id": get_random_id()}
                     )
 
+    def handler_info(self):
+        for event in self.longpoll.listen():
+            if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+                return event.text
+
+    def int_check(self, num):
+        try:
+            int(num)
+        except (TypeError, ValueError):
+            return False
+        else:
+            return True
+
     def event_handler(self):
         for event in self.longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-                    if event.text.lower() == 'привет':
 
+                    if event.text.lower() == 'привет':
                         # логика получения данных о пользователе
 
                         self.params = self.vk_tools.get_profile_info(event.user_id)
                         self.message_send(event.user_id, f'Привет, {self.params["name"]},'
-                                                         f' для начала поиска анкет напиши - поиск')
+                                                         )
+                        # недостающие данные
+
+                        if self.params['year'] is None:
+                            self.message_send(event.user_id, f'Укажите Ваш возраст, пожалуйста')
+                            age = (self.handler_info())
+                            while not self.int_check(age):
+                                self.message_send(event.user_id, f'Введите корректный возраст')
+                                age = (self.handler_info())
+                            self.params['year'] = int(age)
+
+                        if self.params['city'] is None:
+                            self.message_send(event.user_id, f'Укажите Ваш город, пожалуйста')
+                            self.params['city'] = self.handler_info()
+
+                        if self.params['sex'] == 0:
+                            self.message_send(event.user_id, f'Укажите Ваш пол, пожалуйста м/ж')
+                            sex = (self.handler_info())
+                            while sex not in 'мж':
+                                self.message_send(event.user_id, f'Введите корректный пол м/ж')
+                                sex = (self.handler_info())
+                            self.params['sex'] = 1 if sex == 'ж' else 2
+
+                        self.message_send(event.user_id, f'Введите "поиск" для поиска')
 
                     elif event.text.lower() == 'поиск':
 
@@ -77,12 +113,13 @@ class Botinterface():
                         if self.data_store_tools.check_user(event.user_id, worksheet["id"]) is False:
                             self.data_store_tools.add_user(event.user_id, worksheet["id"])
 
-                    elif event.text.lower() == 'пока':
-                        self.message_send(
+                        elif event.text.lower() == 'пока':
+                            self.message_send(
                             event.user_id, 'До новых встреч')
-                    else:
-                        self.message_send(
-                            event.user_id, 'Неизвестная команда')
+                        else:
+                            self.message_send(
+                                event.user_id, 'Неизвестная команда')
+
 
 if __name__ == '__main__':
     bot_interface = Botinterface(comunity_token, acces_token)
