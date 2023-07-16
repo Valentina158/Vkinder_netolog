@@ -1,8 +1,10 @@
 import vk_api
+from vk_api.exceptions import ApiError
+
 from _datetime import datetime
 from pprint import pprint
 from config import acces_token
-from vk_api.exceptions import ApiError
+
 
 class VkTools:
 
@@ -10,7 +12,7 @@ class VkTools:
         self.vkapi = vk_api.VkApi(token=acces_token)
 
     def _bdate_toyear(self, bdate):
-        user_year = bdate.split('.')[2]
+        user_year = bdate.split('.')[1]
         now = datetime.now().year
         return now - int(user_year) if bdate else None
 
@@ -80,7 +82,7 @@ class VkTools:
         return result [:3]
 
 if __name__ == '__main__':
-    user_id = 811410350
+    user_id = asirin88
     tools = VkTools(acces_token)
     params = tools.get_profile_info(user_id)
     worksheets = tools.search_worksheet(params,20)
